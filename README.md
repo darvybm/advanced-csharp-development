@@ -234,23 +234,30 @@ public class TaskResponse<T>
 
 ## Cómo Ejecutar el Proyecto
 
-1. **Clona el repositorio**:
+1. **Clona el repositorio y cambia a la rama correspondiente**:
 
-   ```bash
-   git clone https://github.com/tu-usuario/task-management-api.git
-   cd task-management-api
-   ```
+```bash
+git clone https://github.com/darvybm/advanced-csharp-development.git
+cd advanced-csharp-development
+git checkout practicas/p1-conceptos
+```
 
-2. **Ejecuta SQL Server en Docker**:
+2. **Levanta SQL Server con Docker** (si no lo has hecho ya):
 
-3. **Instala las dependencias y ejecuta la API**:
+```bash
+docker-compose up -d
+```
 
-   * Abre el proyecto en Visual Studio o ejecuta desde la línea de comandos:
+3. **Ejecuta la API**:
 
-   ```bash
-   dotnet run
-   ```
+* Abre el proyecto en Visual Studio o ejecuta desde la línea de comandos:
 
-4. **Accede a la documentación Swagger**:
+```bash
+dotnet run
+```
 
-   * La documentación de la API estará disponible en `http://localhost:5000/swagger`.
+4. **Abre Swagger para probar los endpoints**:
+
+```
+http://localhost:5000/swagger
+```
