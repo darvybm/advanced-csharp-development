@@ -5,9 +5,6 @@
   <img src="https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white" alt="SQL Server Badge" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Badge" />
   <img src="https://img.shields.io/badge/API%20Design-FF5C5C?style=for-the-badge" alt="API Design Badge" />
-  <img src="https://img.shields.io/badge/MVC-0078D4?style=for-the-badge" alt="MVC Badge" />
-  <img src="https://img.shields.io/badge/Unit%20Testing-59C5B8?style=for-the-badge" alt="Unit Testing Badge" />
-  <img src="https://img.shields.io/badge/Automated%20Testing-FF7B00?style=for-the-badge" alt="Automated Testing Badge" />
   <img src="https://img.shields.io/badge/Error%20Handling-EAB308?style=for-the-badge" alt="Error Handling Badge" />
   <img src="https://img.shields.io/badge/DTO-FFB0A6?style=for-the-badge" alt="DTO Badge" />
 </p>
