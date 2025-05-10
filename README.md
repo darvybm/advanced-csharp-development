@@ -1,66 +1,104 @@
-# <p align="center">Task Management API - C# ASP.NET</p>
+# <p align="center">P2 - Lógica Flexible: Task Management API con Delegados, Funciones Anónimas, Action y Func</p>
 <p align="center">
   <img src="https://img.shields.io/badge/C%23-9B4D96?style=for-the-badge&logo=csharp&logoColor=white" alt="C# Badge" />
   <img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET Badge" />
   <img src="https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white" alt="SQL Server Badge" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Badge" />
-  <img src="https://img.shields.io/badge/API%20Design-FF5C5C?style=for-the-badge" alt="API Design Badge" />
-  <img src="https://img.shields.io/badge/MVC-0078D4?style=for-the-badge" alt="MVC Badge" />
-  <img src="https://img.shields.io/badge/Unit%20Testing-59C5B8?style=for-the-badge" alt="Unit Testing Badge" />
-  <img src="https://img.shields.io/badge/Automated%20Testing-FF7B00?style=for-the-badge" alt="Automated Testing Badge" />
-  <img src="https://img.shields.io/badge/Error%20Handling-EAB308?style=for-the-badge" alt="Error Handling Badge" />
-  <img src="https://img.shields.io/badge/DTO-FFB0A6?style=for-the-badge" alt="DTO Badge" />
+  <img src="https://img.shields.io/badge/Delegates-F28DB2?style=for-the-badge" alt="Delegates Badge" />
+  <img src="https://img.shields.io/badge/Action%2FFunc-FFD580?style=for-the-badge" alt="Action Func Badge" />
 </p>
 
+---
 
-Este proyecto es una API RESTful construida con **ASP.NET Core** que permite gestionar tareas. La API sigue buenas prácticas de desarrollo y arquitectura modular, utilizando tecnologías como **SQL Server** en una instancia Dockerizada, validaciones, manejo de errores centralizado, y patrones de diseño como Repositorios, Servicios y Controladores.
+## Descripción del Proyecto
+
+Esta versión mejorada de la API RESTful de gestión de tareas incorpora **una lógica más flexible y reutilizable**. La implementación utiliza potentes características del lenguaje C# como:
+
+- Delegados personalizados para encapsular validaciones.
+- Funciones anónimas para aplicar filtros dinámicos en tiempo de ejecución.
+- Action para centralizar el sistema de notificaciones.
+- Func para enriquecer las respuestas con lógica de cálculo adicional (como días restantes).
+
+---
 
 ## Índice
 
-1. [Descripción del Proyecto](#descripción-del-proyecto)
-2. [Tecnologías Utilizadas](#tecnologías-utilizadas)
+1. [Tecnologías Utilizadas](#tecnologías-utilizadas)
+2. [Novedades Principales](#novedades-principales)
 3. [Arquitectura del Proyecto](#arquitectura-del-proyecto)
 4. [Estructura de Carpetas](#estructura-de-carpetas)
-5. [Endpoints](#endpoints)
+5. [Endpoints RESTful](#endpoints-restful)
 6. [Configuración de SQL Server con Docker](#configuración-de-sql-server-con-docker)
 7. [Manejo de Errores](#manejo-de-errores)
 8. [Cómo Ejecutar el Proyecto](#cómo-ejecutar-el-proyecto)
 
 ---
 
-## Descripción del Proyecto
+## Tecnologías Utilizadas
 
-Este proyecto es una API de gestión de tareas que permite crear, leer, actualizar y eliminar tareas a través de endpoints RESTful. Los datos se almacenan en **SQL Server** y el proyecto está diseñado siguiendo una arquitectura modular y organizada.
-
-El objetivo principal es mantener el código limpio, escalable y fácil de mantener, integrando los mejores patrones de diseño como:
-
-* **DTOs**: para la transferencia de datos.
-* **Servicios**: para la lógica de negocio.
-* **Repositorios**: para la interacción con la base de datos.
-* **Controladores**: para la exposición de la API.
-* **Manejo de errores centralizado**: para capturar excepciones y retornar respuestas estructuradas.
+* **C# / ASP.NET Core**
+* **SQL Server 2022** en contenedor Docker
+* **Swagger**
+* **LINQ avanzado**
+* **Delegates / Func / Action**
 
 ---
 
-## Tecnologías Utilizadas
+## Novedades Principales
 
-* **C# / ASP.NET Core**: Framework principal para la creación de la API.
-* **SQL Server**: Base de datos relacional utilizada para el almacenamiento de datos.
-* **Docker**: Para ejecutar SQL Server en contenedores.
-* **Swagger**: Para la documentación y pruebas de la API.
+### ✅ Validación con Delegado Personalizado
+
+```csharp
+public delegate bool TaskValidator(TaskRequest request);
+private readonly TaskValidator _validator = req =>
+    !string.IsNullOrWhiteSpace(req.Description) && req.DueDate > DateTime.Now;
+```
+
+### ✅ Notificaciones con Action
+
+```csharp
+private readonly Action<string> _notify = msg =>
+    Console.WriteLine($"[NOTIFICACIÓN] {msg}");
+```
+
+### ✅ Func para enriquecer la respuesta con días restantes
+
+```csharp
+private readonly Func<TaskModel, object> _taskWithExtras = t => new
+{
+    t.Id,
+    t.Description,
+    t.DueDate,
+    t.Status,
+    t.ExtraData,
+    DaysLeft = (t.DueDate - DateTime.Now).Days
+};
+```
+
+### ✅ Filtros dinámicos en `GET /api/task`
+
+```csharp
+if (!string.IsNullOrWhiteSpace(status))
+    tasks = tasks.Where(t => t.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+
+if (!string.IsNullOrWhiteSpace(search))
+    tasks = tasks.Where(t => t.Description.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+
+if (dueBefore.HasValue)
+    tasks = tasks.Where(t => t.DueDate < dueBefore.Value).ToList();
+```
 
 ---
 
 ## Arquitectura del Proyecto
 
-La arquitectura del proyecto está organizada en varias capas, cada una con responsabilidades específicas, lo que facilita la escalabilidad y el mantenimiento del código.
+Sigue el mismo patrón modular que en la primera práctica:
 
-1. **DTOs**: Son los objetos que se utilizan para recibir y enviar datos entre el cliente y la API.
-2. **Models**: Son las entidades de negocio que representan los objetos de la base de datos.
-3. **Data**: Contiene las clases relacionadas con la configuración de la base de datos y el contexto.
-4. **Repositories**: Definen los métodos para interactuar con la base de datos.
-5. **Services**: Contienen la lógica de negocio.
-6. **Controllers**: Exponen los endpoints de la API.
+- **DTOs**: intercambio de datos.
+- **Models**: entidades de dominio.
+- **Repositories**: acceso a datos.
+- **Services**: lógica de negocio con funciones flexibles.
+- **Controllers**: exposición de endpoints REST.
 
 ---
 
@@ -73,7 +111,7 @@ TaskManagementAPI/
 │   └── TaskController.cs
 │
 ├── Models/
-│   ├── TaskModel.cs
+│   └── TaskModel.cs
 │   └── Data/
 │       └── AppDbContext.cs
 │
@@ -89,38 +127,37 @@ TaskManagementAPI/
 │
 └── Config/
     └── ErrorHandler.cs
-
 ```
 
 ---
 
-## Endpoints
+## Endpoints RESTful
 
-1. **GET /api/task**
+1. **GET /api/task?status=&search=&dueBefore=**
 
-   * Devuelve todas las tareas en la base de datos.
+   * Devuelve una lista de tareas aplicando filtros dinámicos opcionales.
 
 2. **GET /api/task/{id}**
 
-   * Devuelve una tarea específica según el `id`.
+   * Devuelve una tarea específica.
 
 3. **POST /api/task**
 
-   * Crea una nueva tarea. Requiere un `TaskRequest` con la descripción, fecha de vencimiento y otros detalles.
+   * Crea una nueva tarea validada mediante un delegado personalizado.
 
 4. **PUT /api/task/{id}**
 
-   * Actualiza una tarea existente. Requiere un `TaskRequest` con los nuevos datos.
+   * Actualiza una tarea y notifica al sistema.
 
 5. **DELETE /api/task/{id}**
 
-   * Elimina una tarea específica.
+   * Elimina una tarea y muestra un mensaje de notificación.
 
 ---
 
 ## Configuración de SQL Server con Docker
 
-Este proyecto utiliza **SQL Server 2022** ejecutado en un contenedor Docker. A continuación se muestra cómo configurar y levantar la base de datos localmente.
+Este proyecto utiliza SQL Server 2022 ejecutado en un contenedor Docker. A continuación se detallan los archivos necesarios:
 
 ### 1. Archivo `docker-compose.yml`
 
@@ -152,9 +189,7 @@ networks:
 
 ### 2. Archivo `.env`
 
-Define las variables de entorno utilizadas en `docker-compose.yml`:
-
-```
+```env
 ACCEPT_EULA=Y
 MSSQL_SA_PASSWORD=Darvy!BM
 MSSQL_PID=Developer
@@ -163,7 +198,7 @@ MSSQL_TCP_PORT=1433
 
 ### 3. Cadena de conexión en `appsettings.json`
 
-Asegúrate de usar esta cadena de conexión en tu archivo de configuración de la API:
+Asegúrate de que tu archivo `appsettings.json` contenga la siguiente conexión:
 
 ```json
 "ConnectionStrings": {
@@ -173,17 +208,17 @@ Asegúrate de usar esta cadena de conexión en tu archivo de configuración de l
 
 ### 4. Inicializar el contenedor
 
-Ejecuta el siguiente comando para levantar la base de datos:
+Ejecuta el siguiente comando para levantar SQL Server:
 
 ```bash
 docker-compose up -d
 ```
 
-Esto creará un contenedor de SQL Server disponible en `localhost:1433`.
+Esto creará un contenedor disponible en `localhost:1433`.
 
-### 5. Crear la base de datos y tabla manualmente
+### 5. Crear la base de datos y la tabla `Tasks`
 
-Conéctate al contenedor (puedes usar Azure Data Studio, DBeaver, o `sqlcmd`) y ejecuta los siguientes comandos SQL para crear la base de datos y la tabla principal:
+Puedes conectarte usando Azure Data Studio, DBeaver o `sqlcmd` y ejecutar lo siguiente:
 
 ```sql
 CREATE DATABASE TaskDb;
@@ -205,19 +240,17 @@ CREATE TABLE Tasks (
 
 ## Manejo de Errores
 
-La API implementa un **manejador de errores centralizado** que captura excepciones no controladas y devuelve una respuesta JSON estructurada.
-
-### Ejemplo de respuesta de error
+Se mantiene el mismo manejador de errores estructurado:
 
 ```json
 {
-    "success": false,
-    "message": "Ocurrió un error inesperado.",
-    "detail": "Mensaje de error detallado"
+  "success": false,
+  "message": "Ocurrió un error inesperado.",
+  "detail": "Mensaje de error detallado"
 }
 ```
 
-También se utiliza la clase genérica `TaskResponse<T>` para unificar las respuestas exitosas y fallidas:
+Además, las respuestas están encapsuladas en `TaskResponse<T>`:
 
 ```csharp
 public class TaskResponse<T>
@@ -237,23 +270,28 @@ public class TaskResponse<T>
 
 ## Cómo Ejecutar el Proyecto
 
-1. **Clona el repositorio**:
+1. **Clona el repositorio y cambia a la rama correspondiente**:
 
-   ```bash
-   git clone https://github.com/tu-usuario/task-management-api.git
-   cd task-management-api
-   ```
+```bash
+git clone https://github.com/darvybm/advanced-csharp-development.git
+cd advanced-csharp-development
+git checkout practicas/p2-logica-flexible
+```
 
-2. **Ejecuta SQL Server en Docker**:
+2. **Levanta SQL Server con Docker** (si no lo has hecho ya):
 
-3. **Instala las dependencias y ejecuta la API**:
+```bash
+docker-compose up -d
+```
 
-   * Abre el proyecto en Visual Studio o ejecuta desde la línea de comandos:
+3. **Ejecuta la API**:
 
-   ```bash
-   dotnet run
-   ```
+```bash
+dotnet run
+```
 
-4. **Accede a la documentación Swagger**:
+4. **Abre Swagger para probar los endpoints**:
 
-   * La documentación de la API estará disponible en `http://localhost:5000/swagger`.
+```
+http://localhost:5000/swagger
+```

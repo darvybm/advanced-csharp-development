@@ -12,17 +12,43 @@ namespace TaskManagementAPI.Controllers
     {
         private readonly TaskService _service;
 
+        public delegate bool TaskValidator(TaskRequest request);
+        private readonly TaskValidator _validator = req => !string.IsNullOrWhiteSpace(req.Description) && req.DueDate > DateTime.Now;
+
+        private readonly Action<string> _notify = msg => Console.WriteLine($"[NOTIFICACIÓN] {msg}");
+
+        private readonly Func<TaskModel, object> _taskWithExtras = t => new
+        {
+            t.Id,
+            t.Description,
+            t.DueDate,
+            t.Status,
+            t.ExtraData,
+            DaysLeft = (t.DueDate - DateTime.Now).Days
+        };
+
         public TaskController(TaskService service)
         {
             _service = service;
         }
 
         [HttpGet]
-        [HttpGet]
-        public async Task<ActionResult<TaskResponse<List<TaskModel>>>> Get()
+        public async Task<ActionResult<TaskResponse<List<TaskModel>>>> Get([FromQuery] string? status, [FromQuery] string? search, [FromQuery] DateTime? dueBefore)
         {
-            return Ok(TaskResponse<List<TaskModel>>.Ok(await _service.GetAllAsync()));
+            var tasks = await _service.GetAllAsync();
+
+            if (!string.IsNullOrWhiteSpace(status))
+                tasks = tasks.Where(t => t.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (!string.IsNullOrWhiteSpace(search))
+                tasks = tasks.Where(t => t.Description.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (dueBefore.HasValue)
+                tasks = tasks.Where(t => t.DueDate < dueBefore.Value).ToList();
+
+            return Ok(TaskResponse<List<TaskModel>>.Ok(tasks));
         }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskResponse<TaskModel>>> Get(Guid id)
@@ -31,21 +57,19 @@ namespace TaskManagementAPI.Controllers
             if (task == null)
                 return NotFound(TaskResponse<TaskModel>.Fail("Tarea no encontrada."));
 
-            return Ok(TaskResponse<TaskModel>.Ok(task));
+            return Ok(TaskResponse<object>.Ok(_taskWithExtras(task)));
         }
+
 
         [HttpPost]
         public async Task<ActionResult<TaskResponse<TaskModel>>> Create(TaskRequest taskRequest)
         {
-            if (string.IsNullOrWhiteSpace(taskRequest.Description))
-                return BadRequest(TaskResponse<TaskModel>.Fail("La descripción no puede estar vacía."));
-
-            if (taskRequest.DueDate <= DateTime.Now)
-                return BadRequest(TaskResponse<TaskModel>.Fail("La fecha de vencimiento debe ser futura."));
+            if (!_validator(taskRequest))
+                return BadRequest(TaskResponse<TaskModel>.Fail("Descripción inválida o fecha no válida."));
 
             var task = new TaskModel
             {
-                Id = Guid.NewGuid(), // El ID lo asigna aquí
+                Id = Guid.NewGuid(),
                 Description = taskRequest.Description,
                 DueDate = taskRequest.DueDate,
                 Status = taskRequest.Status,
@@ -54,18 +78,17 @@ namespace TaskManagementAPI.Controllers
 
             await _service.CreateAsync(task);
 
-            return CreatedAtAction(nameof(Get), new { id = task.Id }, TaskResponse<TaskModel>.Ok(task, "Tarea creada correctamente."));
+            _notify($"Tarea '{task.Description}' creada (ID: {task.Id})");
+
+            return Ok(TaskResponse<TaskModel>.Ok(task, "Tarea creada correctamente."));
         }
 
 
         [HttpPut("{id}")]
         public async Task<ActionResult<TaskResponse<object>>> Update(Guid id, TaskRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Description))
-                return BadRequest(TaskResponse<object>.Fail("La descripción no puede estar vacía."));
-
-            if (request.DueDate <= DateTime.Now)
-                return BadRequest(TaskResponse<object>.Fail("La fecha de vencimiento debe ser futura."));
+            if (!_validator(request))
+                return BadRequest(TaskResponse<TaskModel>.Fail("Descripción inválida o fecha no válida."));
 
             var existing = await _service.GetByIdAsync(id);
             if (existing == null)
@@ -80,6 +103,7 @@ namespace TaskManagementAPI.Controllers
             return Ok(TaskResponse<object>.Ok(existing, "Tarea actualizada correctamente."));
         }
 
+
         [HttpDelete("{id}")]
         public async Task<ActionResult<TaskResponse<object>>> Delete(Guid id)
         {
@@ -88,6 +112,9 @@ namespace TaskManagementAPI.Controllers
                 return NotFound(TaskResponse<object>.Fail("Tarea no encontrada."));
 
             await _service.DeleteAsync(id);
+
+            _notify($"Tarea con ID {id} eliminada");
+
             return Ok(TaskResponse<object>.Ok(null, "Tarea eliminada correctamente."));
         }
     }
