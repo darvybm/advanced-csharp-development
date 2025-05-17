@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.DTOs;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.Models.Factory;
 using TaskManagementAPI.Services;
+using TaskFactory = TaskManagementAPI.Models.Factory.TaskFactory;
 
 namespace TaskManagementAPI.Controllers
 {
@@ -62,19 +64,31 @@ namespace TaskManagementAPI.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<TaskResponse<TaskModel>>> Create(TaskRequest taskRequest)
+        public async Task<ActionResult<TaskResponse<TaskModel>>> Create(
+        [FromBody] TaskRequest taskRequest,
+        [FromQuery] string? prioriry)
         {
-            if (!_validator(taskRequest))
-                return BadRequest(TaskResponse<TaskModel>.Fail("Descripción inválida o fecha no válida."));
-
-            var task = new TaskModel
+            if (string.IsNullOrWhiteSpace(taskRequest.Description) ||
+                (string.IsNullOrWhiteSpace(prioriry) && taskRequest.DueDate <= DateTime.Now))
             {
-                Id = Guid.NewGuid(),
-                Description = taskRequest.Description,
-                DueDate = taskRequest.DueDate,
-                Status = taskRequest.Status,
-                ExtraData = taskRequest.ExtraData
-            };
+                return BadRequest(TaskResponse<TaskModel>.Fail("Descripción inválida o fecha no válida."));
+            }
+
+            TaskModel task;
+
+            if (!string.IsNullOrWhiteSpace(prioriry))
+            {
+                task = TaskFactory.CreateByPriority(taskRequest.Description, prioriry);
+            }
+            else
+            {
+                task = TaskFactory.CreateCustomTask(
+                    taskRequest.Description,
+                    taskRequest.DueDate,
+                    taskRequest.Status,
+                    taskRequest.ExtraData
+                );
+            }
 
             await _service.CreateAsync(task);
 
@@ -82,6 +96,7 @@ namespace TaskManagementAPI.Controllers
 
             return Ok(TaskResponse<TaskModel>.Ok(task, "Tarea creada correctamente."));
         }
+
 
 
         [HttpPut("{id}")]
