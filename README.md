@@ -1,4 +1,4 @@
-# <p align="center">P2 - Lógica Flexible: Task Management API con Delegados, Funciones Anónimas, Action y Func</p>
+# <p align="center">P3 - Patrones de Diseño: API Modular con Fábrica de Tareas</p>
 <p align="center">
   <img src="https://img.shields.io/badge/C%23-9B4D96?style=for-the-badge&logo=csharp&logoColor=white" alt="C# Badge" />
   <img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET Badge" />
@@ -12,12 +12,9 @@
 
 ## Descripción del Proyecto
 
-Esta versión mejorada de la API RESTful de gestión de tareas incorpora **una lógica más flexible y reutilizable**. La implementación utiliza potentes características del lenguaje C# como:
+Esta versión de la API RESTful de gestión de tareas incorpora el Patrón de Diseño Fábrica (Factory) para encapsular la creación de tareas con configuraciones predefinidas basadas en la prioridad. Esto hace que la API sea más modular, extensible y mantenible.
 
-- Delegados personalizados para encapsular validaciones.
-- Funciones anónimas para aplicar filtros dinámicos en tiempo de ejecución.
-- Action para centralizar el sistema de notificaciones.
-- Func para enriquecer las respuestas con lógica de cálculo adicional (como días restantes).
+Además, se conservan los principios de la práctica anterior como el uso de delegados, funciones anónimas y acciones para reforzar la lógica flexible.
 
 ---
 
@@ -46,12 +43,37 @@ Esta versión mejorada de la API RESTful de gestión de tareas incorpora **una l
 
 ## Novedades Principales
 
-### ✅ Validación con Delegado Personalizado
+> Practica 3
+
+### ✅ Fábrica de Tareas según Prioridad (Patrón Factory)
+
+```csharp
+public static TaskModel CreateByPriority(string description, string prioridad)
+{
+    var now = DateTime.Now;
+    return prioridad.ToLower() switch
+    {
+        "alta" => new TaskModel { ... },
+        "media" => new TaskModel { ... },
+        "baja" => new TaskModel { ... },
+        _ => new TaskModel { ... }
+    };
+}
+```
+
+Se ignoran `dueDate`, `status` y `extraData` si se especifica una prioridad vía query.
+
+
+> Practica 2
+
+
+### ✅ Validación condicional con Delegado
 
 ```csharp
 public delegate bool TaskValidator(TaskRequest request);
 private readonly TaskValidator _validator = req =>
-    !string.IsNullOrWhiteSpace(req.Description) && req.DueDate > DateTime.Now;
+    !string.IsNullOrWhiteSpace(req.Description) &&
+    (req.DueDate == null || req.DueDate > DateTime.Now);
 ```
 
 ### ✅ Notificaciones con Action
@@ -64,28 +86,10 @@ private readonly Action<string> _notify = msg =>
 ### ✅ Func para enriquecer la respuesta con días restantes
 
 ```csharp
-private readonly Func<TaskModel, object> _taskWithExtras = t => new
-{
-    t.Id,
-    t.Description,
-    t.DueDate,
-    t.Status,
-    t.ExtraData,
+private readonly Func<TaskModel, object> _taskWithExtras = t => new {
+    t.Id, t.Description, t.DueDate, t.Status, t.ExtraData,
     DaysLeft = (t.DueDate - DateTime.Now).Days
 };
-```
-
-### ✅ Filtros dinámicos en `GET /api/task`
-
-```csharp
-if (!string.IsNullOrWhiteSpace(status))
-    tasks = tasks.Where(t => t.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
-
-if (!string.IsNullOrWhiteSpace(search))
-    tasks = tasks.Where(t => t.Description.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-
-if (dueBefore.HasValue)
-    tasks = tasks.Where(t => t.DueDate < dueBefore.Value).ToList();
 ```
 
 ---
