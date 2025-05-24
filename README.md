@@ -1,4 +1,4 @@
-# <p align="center">P3 - Patrones de Diseño: API Modular con Fábrica de Tareas</p>
+# <p align="center">P4 - Programación Reactiva con Rx.NET</p>
 <p align="center">
   <img src="https://img.shields.io/badge/C%23-9B4D96?style=for-the-badge&logo=csharp&logoColor=white" alt="C# Badge" />
   <img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET Badge" />
@@ -42,6 +42,18 @@ Además, se conservan los principios de la práctica anterior como el uso de del
 ---
 
 ## Novedades Principales
+
+> Practica 4
+
+- Se implementó una cola reactiva secuencial utilizando Rx.NET para el procesamiento de tareas.
+
+- Las tareas ahora se encolan automáticamente y se procesan una a una en orden FIFO (First In, First Out) con un delay simulado.
+
+- Se garantiza que una sola tarea se procese a la vez, evitando solapamientos mediante SemaphoreSlim.
+
+- Se incorporaron mensajes de consola o logging para indicar el estado: encolada, procesando y finalizada para fines de debug.
+
+- Se registró ReactiveTaskQueue como un servicio singleton para mantener una única instancia a lo largo de toda la aplicación.
 
 > Practica 3
 
