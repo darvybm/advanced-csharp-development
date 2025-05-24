@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.DTOs;
 using TaskManagementAPI.Models;
@@ -13,6 +14,7 @@ namespace TaskManagementAPI.Controllers
     public class TaskController : ControllerBase
     {
         private readonly TaskService _service;
+        private ReactiveTaskQueue _queue;
 
         public delegate bool TaskValidator(TaskRequest request);
         private readonly TaskValidator _validator = req => !string.IsNullOrWhiteSpace(req.Description) && req.DueDate > DateTime.Now;
@@ -29,9 +31,10 @@ namespace TaskManagementAPI.Controllers
             DaysLeft = (t.DueDate - DateTime.Now).Days
         };
 
-        public TaskController(TaskService service)
+        public TaskController(TaskService service, ReactiveTaskQueue queue)
         {
             _service = service;
+            _queue = queue;
         }
 
         [HttpGet]
@@ -68,6 +71,7 @@ namespace TaskManagementAPI.Controllers
         [FromBody] TaskRequest taskRequest,
         [FromQuery] string? prioriry)
         {
+            Debug.WriteLine("TEST");
             if (string.IsNullOrWhiteSpace(taskRequest.Description) ||
                 (string.IsNullOrWhiteSpace(prioriry) && taskRequest.DueDate <= DateTime.Now))
             {
@@ -92,7 +96,9 @@ namespace TaskManagementAPI.Controllers
 
             await _service.CreateAsync(task);
 
-            _notify($"Tarea '{task.Description}' creada (ID: {task.Id})");
+            // _notify($"Tarea '{task.Description}' creada (ID: {task.Id})");
+
+            _queue.Enqueue(task);
 
             return Ok(TaskResponse<TaskModel>.Ok(task, "Tarea creada correctamente."));
         }

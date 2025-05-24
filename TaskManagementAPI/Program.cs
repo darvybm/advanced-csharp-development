@@ -14,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Servicios
 builder.Services.AddScoped<TaskRepository>();
 builder.Services.AddScoped<TaskService>();
+builder.Services.AddSingleton<ReactiveTaskQueue>();
 
 
 builder.Services.AddControllers();
