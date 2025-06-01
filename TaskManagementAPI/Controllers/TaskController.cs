@@ -6,6 +6,7 @@ using TaskManagementAPI.Models;
 using TaskManagementAPI.Models.Factory;
 using TaskManagementAPI.Services;
 using TaskFactory = TaskManagementAPI.Models.Factory.TaskFactory;
+using TaskManagementAPI.Utils;
 
 namespace TaskManagementAPI.Controllers
 {
@@ -42,16 +43,33 @@ namespace TaskManagementAPI.Controllers
         {
             var tasks = await _service.GetAllAsync();
 
+            // Filtrado por estado con memorización
             if (!string.IsNullOrWhiteSpace(status))
-                tasks = tasks.Where(t => t.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+            {
+                tasks = Memoizer.Memoize((tasks, status), tuple =>
+                    tuple.tasks.Where(t => t.Status.Equals(tuple.status, StringComparison.OrdinalIgnoreCase)).ToList()
+                );
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
                 tasks = tasks.Where(t => t.Description.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
 
+            // Filtrado por fecha con memorización
             if (dueBefore.HasValue)
-                tasks = tasks.Where(t => t.DueDate < dueBefore.Value).ToList();
+            {
+                tasks = Memoizer.Memoize((tasks, dueBefore.Value), tuple =>
+                    tuple.tasks.Where(t => t.DueDate < tuple.Item2).ToList()
+                );
+            }
 
-            return Ok(TaskResponse<List<TaskModel>>.Ok(tasks));
+            // Aplicamos memorización al cálculo del porcentaje
+            var completionRate = Memoizer.Memoize(tasks, TaskMetrics.CalculateCompletionRate);
+
+            return Ok(TaskResponse<object>.Ok(new
+            {
+                Tasks = tasks,
+                CompletionRate = Math.Round(completionRate, 2) // Ej: 78.95
+            }));
         }
 
 
