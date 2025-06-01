@@ -38,8 +38,31 @@ Además, se conservan los principios de la práctica anterior como el uso de del
 * **Swagger**
 * **LINQ avanzado**
 * **Delegates / Func / Action**
+* **Rx.NET**
+* **Memorización**
 
 ---
+
+> Práctica 5
+
+### ✅ Optimización con Memorización
+
+- Se implementó una clase `Memoizer` para cachear resultados de funciones costosas.
+- Se aplicó a funciones puras como `CalculateCompletionRate` (porcentaje de tareas completadas) y filtros de tareas.
+- Mejora el rendimiento de la API, especialmente cuando se realizan múltiples consultas con los mismos parámetros.
+
+```csharp
+var completionRate = Memoizer.Memoize(tasks, TaskMetrics.CalculateCompletionRate);
+```
+Se devuelve junto al listado de tareas:
+
+```json
+{
+  "tasks": [...],
+  "completionRate": 72.5
+}
+
+```
 
 ## Novedades Principales
 
