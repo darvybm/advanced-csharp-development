@@ -20,6 +20,18 @@ builder.Services.AddSingleton<ReactiveTaskQueue>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins("http://127.0.0.1:5500") // la URL exacta de Live Server
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // importante si usas SignalR
+    });
+});
 
 var app = builder.Build();
 
@@ -31,6 +43,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(); // antes de MapHub y MapControllers
+
+app.MapHub<TaskHub>("/taskhub");
+app.MapHub<ChatHub>("/chatHub");
 
 app.UseHttpsRedirection();
 

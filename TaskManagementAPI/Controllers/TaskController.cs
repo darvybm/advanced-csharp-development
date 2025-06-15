@@ -7,6 +7,7 @@ using TaskManagementAPI.Models.Factory;
 using TaskManagementAPI.Services;
 using TaskFactory = TaskManagementAPI.Models.Factory.TaskFactory;
 using TaskManagementAPI.Utils;
+using Microsoft.AspNetCore.SignalR;
 
 namespace TaskManagementAPI.Controllers
 {
@@ -22,6 +23,8 @@ namespace TaskManagementAPI.Controllers
 
         private readonly Action<string> _notify = msg => Console.WriteLine($"[NOTIFICACIÓN] {msg}");
 
+        private readonly IHubContext<TaskHub> _context;
+
         private readonly Func<TaskModel, object> _taskWithExtras = t => new
         {
             t.Id,
@@ -32,10 +35,11 @@ namespace TaskManagementAPI.Controllers
             DaysLeft = (t.DueDate - DateTime.Now).Days
         };
 
-        public TaskController(TaskService service, ReactiveTaskQueue queue)
+        public TaskController(TaskService service, ReactiveTaskQueue queue, IHubContext<TaskHub> hubContext)
         {
             _service = service;
             _queue = queue;
+            _context = hubContext;
         }
 
         [HttpGet]
@@ -117,6 +121,7 @@ namespace TaskManagementAPI.Controllers
             // _notify($"Tarea '{task.Description}' creada (ID: {task.Id})");
 
             _queue.Enqueue(task);
+            await _context.Clients.All.SendAsync("TaskCreated", task);
 
             return Ok(TaskResponse<TaskModel>.Ok(task, "Tarea creada correctamente."));
         }
