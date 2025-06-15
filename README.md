@@ -1,4 +1,4 @@
-# <p align="center">P5 - Optimización de funciones con memorización</p>
+# <p align="center">P7 - Configuración de SignalR</p>
 <p align="center">
   <img src="https://img.shields.io/badge/C%23-9B4D96?style=for-the-badge&logo=csharp&logoColor=white" alt="C# Badge" />
   <img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET Badge" />
@@ -40,6 +40,33 @@ Además, se conservan los principios de la práctica anterior como el uso de del
 * **Delegates / Func / Action**
 * **Rx.NET**
 * **Memorización**
+
+---
+
+> Práctica 7
+
+https://github.com/user-attachments/assets/7e525bd3-3364-42cf-a90b-fa709786aa1e
+
+### ✅ Comunicación en Tiempo Real con SignalR
+
+En esta etapa se integró **SignalR** para habilitar la comunicación en tiempo real entre el servidor y los clientes. Cada vez que se crea una nueva tarea, todos los usuarios conectados reciben una notificación automáticamente, sin necesidad de recargar la página o realizar solicitudes periódicas.
+
+---
+
+### 🧩 Principales funcionalidades añadidas
+
+* Configuración del **hub de SignalR** como punto central de transmisión de eventos.
+* Emisión del evento `TaskCreated` desde el backend tras la creación de una tarea.
+* Integración de **CORS** para permitir la conexión desde interfaces externas como Live Server o aplicaciones frontend independientes.
+* Interfaz de usuario receptiva que muestra las tareas nuevas de forma animada y clara.
+
+---
+
+### 💡 Beneficios
+
+* Mejora la experiencia del usuario al mantener la vista sincronizada con los cambios del sistema.
+* Sienta las bases para una arquitectura más interactiva y colaborativa.
+* Facilita la escalabilidad hacia entornos como **Blazor**, **React** o **MAUI**, donde la actualización en tiempo real es clave.
 
 ---
 
