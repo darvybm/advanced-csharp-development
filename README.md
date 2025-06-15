@@ -1,4 +1,4 @@
-# <p align="center">P4 - Programación Reactiva con Rx.NET</p>
+# <p align="center">P5 - Optimización de funciones con memorización</p>
 <p align="center">
   <img src="https://img.shields.io/badge/C%23-9B4D96?style=for-the-badge&logo=csharp&logoColor=white" alt="C# Badge" />
   <img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET Badge" />
@@ -38,8 +38,31 @@ Además, se conservan los principios de la práctica anterior como el uso de del
 * **Swagger**
 * **LINQ avanzado**
 * **Delegates / Func / Action**
+* **Rx.NET**
+* **Memorización**
 
 ---
+
+> Práctica 5
+
+### ✅ Optimización con Memorización
+
+- Se implementó una clase `Memoizer` para cachear resultados de funciones costosas.
+- Se aplicó a funciones puras como `CalculateCompletionRate` (porcentaje de tareas completadas) y filtros de tareas.
+- Mejora el rendimiento de la API, especialmente cuando se realizan múltiples consultas con los mismos parámetros.
+
+```csharp
+var completionRate = Memoizer.Memoize(tasks, TaskMetrics.CalculateCompletionRate);
+```
+Se devuelve junto al listado de tareas:
+
+```json
+{
+  "tasks": [...],
+  "completionRate": 72.5
+}
+
+```
 
 ## Novedades Principales
 
